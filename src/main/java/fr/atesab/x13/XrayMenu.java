@@ -172,6 +172,7 @@ public class XrayMenu extends GuiScreen {
 				if (!super.mouseClicked(x,y,b))
 					return false;
 				modeElements.forEach(XrayModeElement::save);
+				XrayMain.getMod().saveConfigs();
 				mc.displayGuiScreen(parent);
 				return true;
 			}
