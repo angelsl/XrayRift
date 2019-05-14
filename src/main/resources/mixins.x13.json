@@ -9,6 +9,8 @@
 		"MixinBlock",
 		"MixinMinecraft",
 		"MixinKeyBinding",
-		"MixinIBlockState"
+		"MixinIBlockState",
+		"MixinRenderChunk",
+		"MixinWorldRenderer"
 	]
 }
