@@ -21,8 +21,6 @@ import net.minecraft.util.registry.IRegistry;
 import net.minecraft.world.IBlockReader;
 
 public class XrayMode implements SideRenderer {
-	private static final Optional<EnumBlockRenderType> EBRT_INVISIBLE = Optional.of(EnumBlockRenderType.INVISIBLE);
-
 	@FunctionalInterface
 	public static interface Viewer {
 		public boolean shouldRenderSide(boolean blockInList, IBlockState state, IBlockReader reader, BlockPos pos,
