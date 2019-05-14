@@ -3,6 +3,8 @@
 	"x13.mod.cave": "Cave Mode",
 	"x13.mod.redstone": "Redstone Mode",
 	"x13.mod.fullbright": "Fullbright",
+	"x13.mod.zoom": "Zoom",
+	"x13.mod.zoomfov": "Zoom FOV",
 	"x13.mod.config": "Config Xray",
 	"x13.mod.blocks": "%s blocks",
 	"x13.mod.showloc": "Location",

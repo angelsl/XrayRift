@@ -9,9 +9,12 @@ import com.google.common.collect.Lists;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiOptionSlider;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.util.math.MathHelper;
 
 public class XrayMenu extends GuiScreen {
 	/**
@@ -61,6 +64,61 @@ public class XrayMenu extends GuiScreen {
 					+ (value ? " (" + I18n.format("x13.mod.enable") + ")" : "");
 			return this;
 		}
+	}
+
+	private abstract class GuiSlider extends GuiButton {
+		private final String title;
+		private double sliderValue;
+		private boolean dragging;
+		private final double minValue;
+		private final double maxValue;
+
+		public GuiSlider(int buttonId, int x, int y, int widthIn, int heightIn, double minValue, double maxValue, double value, String title_lang) {
+			super(buttonId, x, y, widthIn, heightIn, "");
+			this.minValue = minValue;
+			this.maxValue = maxValue;
+			this.sliderValue = (value - minValue) / (maxValue - minValue);
+			this.title = I18n.format(title_lang, "");
+			this.displayString = title + ": " + value;
+		}
+
+		protected int getHoverState(boolean mouseOver) {
+			return 0;
+		}
+
+		protected void renderBg(Minecraft mc, int mouseX, int mouseY) {
+			if (this.visible) {
+				if (this.dragging) {
+					handleValueChange(mouseX);
+				}
+
+				mc.getTextureManager().bindTexture(BUTTON_TEXTURES);
+				GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+				this.drawTexturedModalRect(this.x + (int)(this.sliderValue * (double)(this.width - 8)), this.y, 0, 66, 4, 20);
+				this.drawTexturedModalRect(this.x + (int)(this.sliderValue * (double)(this.width - 8)) + 4, this.y, 196, 66, 4, 20);
+			}
+		}
+
+		public final void onClick(double mouseX, double mouseY) {
+			handleValueChange(mouseX);
+			this.dragging = true;
+		}
+
+		public void onRelease(double mouseX, double mouseY) {
+			this.dragging = false;
+			this.displayString = title + ": " + Math.round(sliderValue * (maxValue - minValue) + minValue);
+		}
+
+		private void handleValueChange(double mouseX) {
+			this.sliderValue = (mouseX - (double)(this.x + 4)) / (double)(this.width - 8);
+			this.sliderValue = MathHelper.clamp(this.sliderValue, 0.0D, 1.0D);
+			double scaled = Math.round(sliderValue*(maxValue - minValue) + minValue);
+			this.sliderValue = (scaled - minValue) / (maxValue - minValue);
+			this.displayString = Double.toString(scaled);
+			onValueChange(scaled);
+		}
+
+		public abstract void onValueChange(double newValue);
 	}
 
 	public class XrayModeElement {
@@ -180,11 +238,17 @@ public class XrayMenu extends GuiScreen {
 		OptionalInt max = modeElements.stream().mapToInt(XrayModeElement::getSizeX).max();
 		int sizeX = (max.isPresent() ? max.getAsInt() : 0);
 		int x = width / 2 - 195 + sizeX;
-		int y = height / 2 - 22 - 24 * modeElements.size();
+		int y = height / 2 - 22 - 24 * (modeElements.size() + 1);
 		for (XrayModeElement element : modeElements) {
 			y += 24;
 			element.init(x, y, sizeX);
 		}
+		addButton(new GuiSlider(0, width / 2 - 195, y + 24, 338, 16, 10D, 110D, mod.getZoomFOV(), "x13.mod.zoomfov") {
+			@Override
+			public void onValueChange(double newValue) {
+				mod.setZoomFOV(newValue);
+			}
+		});
 		addButton(new GuiBooleanButton("x13.mod.fullbright", mod::isFullBrightEnable, mod::fullBright));
 		addButton(new GuiBooleanButton("x13.mod.showloc", mod::isShowLocation, mod::setShowLocation));
 		int i, j = colorButtons.size() / 3;

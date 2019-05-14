@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import net.minecraft.client.GameSettings;
 import net.minecraft.util.EnumBlockRenderType;
 import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.apache.logging.log4j.LogManager;
@@ -113,11 +114,13 @@ public class XrayMain {
 
 	private List<XrayMode> modes = Lists.newArrayList();
 	private List<String> customModes = Lists.newArrayList();
-	private double oldGama;
+	private double oldGama, oldFOV;
+	private double zoomFOV = 15.0D;
 	private boolean fullBrightEnable = false;
 	private boolean internalFullbrightEnable = false;
+	private boolean zoomEnabled = false;
 	private boolean showLocation = true;
-	private KeyBinding fullbright, config;
+	private KeyBinding fullbright, config, zoom;
 	private boolean isInit = false;
 	private boolean isPreInit = false;
 	private int fullbrightColor = 0;
@@ -198,7 +201,8 @@ public class XrayMain {
 						Blocks.SPRUCE_PRESSURE_PLATE, Blocks.STONE_PRESSURE_PLATE, Blocks.RAIL, Blocks.ACTIVATOR_RAIL,
 						Blocks.DETECTOR_RAIL, Blocks.POWERED_RAIL, Blocks.ENDER_CHEST));
 		api.registerKeys(fullbright = new KeyBinding("x13.mod.fullbright", 72, "key.categories.xray"), // H
-				config = new KeyBinding("x13.mod.config", 78, "key.categories.xray")); // N
+				config = new KeyBinding("x13.mod.config", 78, "key.categories.xray"), // N
+				zoom = new KeyBinding("x13.mod.zoom", 342, "key.categories.xray")); // Left Alt
 		fullbrightColor = XrayMode.nextColor();
 		loadConfigs();
 		mc.gameSettings.loadOptions();
@@ -254,6 +258,7 @@ public class XrayMain {
 			internalFullbrightEnable = fullBrightEnable
 					|| (boolean) map.getOrDefault("internalFullbrightEnable", false);
 			oldGama = (double) map.getOrDefault("oldGama", 0D);
+			zoomFOV = (double) map.getOrDefault("zoomFOV", 15.0D);
 			showLocation = (boolean) map.getOrDefault("showLocation", true);
 			customModes = ((List<String>) map.getOrDefault("customModes", Lists.<String>newArrayList()));
 			registerXrayMode(customModes.stream().map(customMode -> {
@@ -321,6 +326,7 @@ public class XrayMain {
 			fullBright();
 		else if (config.isPressed())
 			Minecraft.getInstance().displayGuiScreen(new XrayMenu(null));
+		handleZoom();
 	}
 
 	/**
@@ -377,6 +383,7 @@ public class XrayMain {
 						modes.forEach(mode -> m.put(mode.getName() + "Blocks", getBlockNamesToList(mode.getBlocks())));
 						m.put("showLocation", showLocation);
 						m.put("oldGama", oldGama);
+						m.put("zoomFOV", zoomFOV);
 						m.put("internalFullbrightEnable", internalFullbrightEnable);
 						m.put("fullBrightEnable", fullBrightEnable);
 						m.put("customModes", customModes.stream().map(
@@ -414,4 +421,23 @@ public class XrayMain {
 		return Optional.empty();
 	}
 
+	private void handleZoom() {
+		GameSettings gs = Minecraft.getInstance().gameSettings;
+		if (zoomEnabled && !zoom.isKeyDown()) {
+			gs.fovSetting = oldFOV;
+			zoomEnabled = false;
+		} else if (!zoomEnabled && zoom.isKeyDown()) {
+			oldFOV = gs.fovSetting;
+			gs.fovSetting = zoomFOV;
+			zoomEnabled = true;
+		}
+	}
+
+	public double getZoomFOV() {
+		return zoomFOV;
+	}
+
+	public void setZoomFOV(double zoomFOV) {
+		this.zoomFOV = zoomFOV;
+	}
 }
