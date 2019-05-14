@@ -287,8 +287,17 @@ public class XrayMain {
 	 * Reload modules
 	 */
 	public XrayMain modules() {
+		int i = 0;
+		for (; i < modes.size(); ++i) {
+			if (modes.get(i).isEnabled()) {
+				break;
+			}
+		}
 		for (XrayMode mode : modes)
-			mode.toggle(mode.isEnabled(), false);
+			mode.toggle(false, false);
+		if (i < modes.size()) {
+			modes.get(i).toggle(true, false);
+		}
 		fullBright(isFullBrightEnable());
 		Minecraft.getInstance().worldRenderer.loadRenderers();
 		return this;
