@@ -1,7 +1,9 @@
 package fr.atesab.x13;
 
 import java.util.List;
+import java.util.Optional;
 
+import net.minecraft.util.EnumBlockRenderType;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.google.common.collect.Lists;
@@ -19,6 +21,8 @@ import net.minecraft.util.registry.IRegistry;
 import net.minecraft.world.IBlockReader;
 
 public class XrayMode implements SideRenderer {
+	private static final Optional<EnumBlockRenderType> EBRT_INVISIBLE = Optional.of(EnumBlockRenderType.INVISIBLE);
+
 	@FunctionalInterface
 	public static interface Viewer {
 		public boolean shouldRenderSide(boolean blockInList, IBlockState state, IBlockReader reader, BlockPos pos,
@@ -148,6 +152,14 @@ public class XrayMode implements SideRenderer {
 		if (isEnabled())
 			ci.setReturnValue(
 					viewMode.getViewer().shouldRenderSide(blocks.contains(state.getBlock()), state, reader, pos, face));
+	}
+
+	public Optional<EnumBlockRenderType> getRenderType(IBlockState state) {
+		if (isEnabled() && viewMode == ViewMode.EXCLUSIVE && !blocks.contains(state.getBlock())) {
+			return EBRT_INVISIBLE;
+		}
+
+		return Optional.empty();
 	}
 
 	public void toggle() {

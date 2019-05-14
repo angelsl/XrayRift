@@ -13,9 +13,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import net.minecraft.util.EnumBlockRenderType;
 import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -399,6 +401,17 @@ public class XrayMain {
 			CallbackInfoReturnable<Boolean> ci) {
 		for (XrayMode mode : modes)
 			mode.shouldSideBeRendered(state, reader, pos, face, ci);
+	}
+
+	public Optional<EnumBlockRenderType> getRenderType(IBlockState state) {
+		for (XrayMode mode : modes) {
+			Optional<EnumBlockRenderType> ret = mode.getRenderType(state);
+			if (ret.isPresent()) {
+				return ret;
+			}
+		}
+
+		return Optional.empty();
 	}
 
 }
