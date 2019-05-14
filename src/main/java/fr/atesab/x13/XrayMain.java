@@ -410,15 +410,14 @@ public class XrayMain {
 			mode.shouldSideBeRendered(state, reader, pos, face, ci);
 	}
 
-	public Optional<EnumBlockRenderType> getRenderType(IBlockState state) {
+	public boolean shouldBlockBeRendered(IBlockState state) {
 		for (XrayMode mode : modes) {
-			Optional<EnumBlockRenderType> ret = mode.getRenderType(state);
-			if (ret.isPresent()) {
-				return ret;
+			if (!mode.shouldBlockBeRendered(state)) {
+				return false;
 			}
 		}
 
-		return Optional.empty();
+		return true;
 	}
 
 	private void handleZoom() {

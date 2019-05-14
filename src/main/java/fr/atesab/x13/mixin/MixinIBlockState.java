@@ -15,9 +15,8 @@ import java.util.Optional;
 public interface MixinIBlockState extends IBlockState {
     //@Inject(method = "getRenderType", at = @At("HEAD"), cancellable = true)
     default EnumBlockRenderType getRenderType() {
-        Optional<EnumBlockRenderType> ebrt = XrayMain.getMod().getRenderType(this);
-        if (ebrt.isPresent()) {
-            return ebrt.get();
+        if (!XrayMain.getMod().shouldBlockBeRendered(this)) {
+            return EnumBlockRenderType.INVISIBLE;
         }
 
         return getBlock().getRenderType(this);

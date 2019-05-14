@@ -154,12 +154,8 @@ public class XrayMode implements SideRenderer {
 					viewMode.getViewer().shouldRenderSide(blocks.contains(state.getBlock()), state, reader, pos, face));
 	}
 
-	public Optional<EnumBlockRenderType> getRenderType(IBlockState state) {
-		if (isEnabled() && viewMode == ViewMode.EXCLUSIVE && !blocks.contains(state.getBlock())) {
-			return EBRT_INVISIBLE;
-		}
-
-		return Optional.empty();
+	public boolean shouldBlockBeRendered(IBlockState state) {
+		return !isEnabled() || viewMode != ViewMode.EXCLUSIVE || blocks.contains(state.getBlock());
 	}
 
 	public void toggle() {
