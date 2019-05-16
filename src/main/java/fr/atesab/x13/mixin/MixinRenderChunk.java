@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public class MixinRenderChunk {
     @Redirect(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/state/IBlockState;isOpaqueCube(Lnet/minecraft/world/IBlockReader;Lnet/minecraft/util/math/BlockPos;)Z"))
     private boolean onIsOpaqueCube(IBlockState _this, IBlockReader worldIn, BlockPos pos) {
-        if (!XrayMain.getMod().shouldBlockBeRendered(_this)) {
+        if (!XrayMain.getMod().shouldBlockBeRendered(_this, worldIn, pos)) {
             return false;
         }
 

@@ -429,6 +429,16 @@ public class XrayMain {
 		return true;
 	}
 
+	public boolean shouldBlockBeRendered(IBlockState state, IBlockReader reader, BlockPos pos) {
+		for (XrayMode mode : modes) {
+			if (!mode.shouldBlockBeRendered(state, reader, pos)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	private void handleZoom() {
 		GameSettings gs = Minecraft.getInstance().gameSettings;
 		if (zoomEnabled && !zoom.isKeyDown()) {

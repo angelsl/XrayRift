@@ -22,29 +22,54 @@ import net.minecraft.world.IBlockReader;
 
 public class XrayMode implements SideRenderer {
 	@FunctionalInterface
-	public static interface Viewer {
-		public boolean shouldRenderSide(boolean blockInList, IBlockState state, IBlockReader reader, BlockPos pos,
+	public interface SideViewer {
+		boolean shouldRenderSide(boolean blockInList, IBlockState state, IBlockReader reader, BlockPos pos,
 				EnumFacing face);
 	}
 
-	public static enum ViewMode {
+	@FunctionalInterface
+	public interface BlockViewer {
+		boolean shouldRenderBlock(boolean blockInList, IBlockState state, IBlockReader reader, BlockPos pos);
+	}
+
+	public enum ViewMode {
 		/**
 		 * Default mode, like in Xray and Redstone mode
 		 */
-		EXCLUSIVE((il, v1, v2, v3, v4) -> il),
+		EXCLUSIVE((il, v1, v2, v3, v4) -> il, (il, v1, v2, v3) -> il),
 		/**
 		 * Inclusive mode, like in Cave Mode
 		 */
-		INCLUSIVE((il, v1, reader, pos, face) -> !il && reader.getBlockState(pos.offset(face)).isAir());
+		INCLUSIVE((il, v1, reader, pos, face) -> !il && reader.getBlockState(pos.offset(face)).isAir(),
+				(il, v1, reader, pos) -> {
+					if (il) {
+						return false;
+					}
 
-		private Viewer viewer;
+					// return true if any adjacent block is air
+					BlockPos.MutableBlockPos mPos = new BlockPos.MutableBlockPos(pos);
+					return reader.getBlockState(mPos.move(1, 0, 0)).isAir() ||
+							reader.getBlockState(mPos.move(-2, 0, 0)).isAir() ||
+							reader.getBlockState(mPos.move(1, 1, 0)).isAir() ||
+							reader.getBlockState(mPos.move(0, -2, 0)).isAir() ||
+							reader.getBlockState(mPos.move(0, 1, 1)).isAir() ||
+							reader.getBlockState(mPos.move(0, 0, -2)).isAir();
+				});
 
-		private ViewMode(Viewer viewer) {
-			this.viewer = viewer;
+		private final BlockViewer blockViewer;
+		private final SideViewer sideViewer;
+
+		ViewMode(SideViewer sideViewer, BlockViewer blockViewer) {
+			this.sideViewer = sideViewer;
+			this.blockViewer = blockViewer;
 		}
 
-		public Viewer getViewer() {
-			return viewer;
+		public SideViewer getSideViewer() {
+			return sideViewer;
+		}
+
+		public BlockViewer getBlockViewer() {
+			return blockViewer;
 		}
 	}
 
@@ -149,11 +174,15 @@ public class XrayMode implements SideRenderer {
 			CallbackInfoReturnable<Boolean> ci) {
 		if (isEnabled())
 			ci.setReturnValue(
-					viewMode.getViewer().shouldRenderSide(blocks.contains(state.getBlock()), state, reader, pos, face));
+					viewMode.getSideViewer().shouldRenderSide(blocks.contains(state.getBlock()), state, reader, pos, face));
 	}
 
 	public boolean shouldBlockBeRendered(IBlockState state) {
-		return !isEnabled() || viewMode != ViewMode.EXCLUSIVE || blocks.contains(state.getBlock());
+		return !isEnabled() || ((viewMode == ViewMode.EXCLUSIVE) == blocks.contains(state.getBlock()));
+	}
+
+	public boolean shouldBlockBeRendered(IBlockState state, IBlockReader reader, BlockPos pos) {
+		return !isEnabled() || viewMode.getBlockViewer().shouldRenderBlock(blocks.contains(state.getBlock()), state, reader, pos);
 	}
 
 	public void toggle() {
