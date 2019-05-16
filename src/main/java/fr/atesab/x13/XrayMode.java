@@ -19,58 +19,6 @@ import net.minecraft.util.registry.IRegistry;
 import net.minecraft.world.IBlockReader;
 
 public class XrayMode implements SideRenderer {
-    @FunctionalInterface
-    public interface SideViewer {
-        boolean shouldRenderSide(boolean blockInList, IBlockState state, IBlockReader reader, BlockPos pos,
-                EnumFacing face);
-    }
-
-    @FunctionalInterface
-    public interface BlockViewer {
-        boolean shouldRenderBlock(boolean blockInList, IBlockState state, IBlockReader reader, BlockPos pos);
-    }
-
-    public enum ViewMode {
-        /**
-         * Default mode, like in Xray and Redstone mode
-         */
-        EXCLUSIVE((il, v1, v2, v3, v4) -> il, (il, v1, v2, v3) -> il),
-        /**
-         * Inclusive mode, like in Cave Mode
-         */
-        INCLUSIVE((il, v1, reader, pos, face) -> !il && reader.getBlockState(pos.offset(face)).isAir(),
-                (il, v1, reader, pos) -> {
-                    if (il) {
-                        return false;
-                    }
-
-                    // return true if any adjacent block is air
-                    BlockPos.MutableBlockPos mPos = new BlockPos.MutableBlockPos(pos);
-                    return reader.getBlockState(mPos.move(1, 0, 0)).isAir() ||
-                            reader.getBlockState(mPos.move(-2, 0, 0)).isAir() ||
-                            reader.getBlockState(mPos.move(1, 1, 0)).isAir() ||
-                            reader.getBlockState(mPos.move(0, -2, 0)).isAir() ||
-                            reader.getBlockState(mPos.move(0, 1, 1)).isAir() ||
-                            reader.getBlockState(mPos.move(0, 0, -2)).isAir();
-                });
-
-        private final BlockViewer blockViewer;
-        private final SideViewer sideViewer;
-
-        ViewMode(SideViewer sideViewer, BlockViewer blockViewer) {
-            this.sideViewer = sideViewer;
-            this.blockViewer = blockViewer;
-        }
-
-        public SideViewer getSideViewer() {
-            return sideViewer;
-        }
-
-        public BlockViewer getBlockViewer() {
-            return blockViewer;
-        }
-    }
-
     private static final List<XrayMode> MODES = Lists.newArrayList();
     private List<Block> blocks;
     private final String defaultBlocks;
@@ -78,7 +26,7 @@ public class XrayMode implements SideRenderer {
     private KeyBinding key;
     private final String name;
     private final int color;
-    private ViewMode viewMode;
+    private boolean caveMode;
     private static int colorCursor = -1;
     private static final int[] COLORS = { 0xff00ffff, 0xff00ff00, 0xffff0000, 0xffffff00, 0xffff00ff,
             0xff7aff00, 0xffff7a00, 0xff00ff7a, 0xffff007a, 0xff7a00ff, 0xff7a7aff, 0xff7aff7a, 0xffff7a7a };
@@ -88,24 +36,24 @@ public class XrayMode implements SideRenderer {
         return COLORS[colorCursor = (colorCursor + 1) % COLORS.length];
     }
 
-    public XrayMode(String name, int keyCode, ViewMode viewMode) {
+    public XrayMode(String name, int keyCode, boolean caveMode) {
         this.name = name;
         this.color = nextColor();
         this.enabled = false;
         this.blocks = Lists.newArrayList();
         this.key = new KeyBinding(name, keyCode, "key.categories.xray");
-        this.viewMode = viewMode;
+        this.caveMode = caveMode;
         this.defaultBlocks = "";
         MODES.add(this);
     }
 
-    public XrayMode(String name, int keyCode, ViewMode viewMode, Block... defaultBlocks) {
+    public XrayMode(String name, int keyCode, boolean caveMode, Block... defaultBlocks) {
         this.name = name;
         this.color = nextColor();
         this.enabled = false;
         this.blocks = Lists.newArrayList(defaultBlocks);
         this.key = new KeyBinding("x13.mod." + name, keyCode, "key.categories.xray");
-        this.viewMode = viewMode;
+        this.caveMode = caveMode;
         this.defaultBlocks = XrayMain.getBlockNamesToString(blocks);
         MODES.add(this);
     }
@@ -134,8 +82,8 @@ public class XrayMode implements SideRenderer {
         return name.startsWith(CUSTOM_PREFIX) ? name : I18n.format("x13.mod." + name);
     }
 
-    public ViewMode getViewMode() {
-        return viewMode;
+    public boolean getCaveMode() {
+        return caveMode;
     }
 
     public boolean isEnabled() {
@@ -146,8 +94,8 @@ public class XrayMode implements SideRenderer {
         this.blocks = blocks;
     }
 
-    public void setViewMode(ViewMode viewMode) {
-        this.viewMode = viewMode;
+    public void setCaveMode(boolean caveMode) {
+        this.caveMode = caveMode;
     }
 
     public boolean toggleKey() {
@@ -170,17 +118,37 @@ public class XrayMode implements SideRenderer {
     @Override
     public void shouldSideBeRendered(IBlockState state, IBlockReader reader, BlockPos pos, EnumFacing face,
             CallbackInfoReturnable<Boolean> ci) {
-        if (isEnabled())
-            ci.setReturnValue(
-                    viewMode.getSideViewer().shouldRenderSide(blocks.contains(state.getBlock()), state, reader, pos, face));
+        if (!enabled) {
+            return;
+        }
+
+        ci.setReturnValue(blocks.contains(state.getBlock()) && (!caveMode || reader.getBlockState(pos.offset(face)).isAir()));
     }
 
     public boolean shouldBlockBeRendered(IBlockState state) {
-        return !isEnabled() || ((viewMode == ViewMode.EXCLUSIVE) == blocks.contains(state.getBlock()));
+        return !enabled || blocks.contains(state.getBlock());
     }
 
     public boolean shouldBlockBeRendered(IBlockState state, IBlockReader reader, BlockPos pos) {
-        return !isEnabled() || viewMode.getBlockViewer().shouldRenderBlock(blocks.contains(state.getBlock()), state, reader, pos);
+        if (!enabled) {
+            return true;
+        }
+
+        if (!blocks.contains(state.getBlock())) {
+            return false;
+        }
+
+        if (!caveMode) {
+            return true;
+        }
+
+        BlockPos.MutableBlockPos mPos = new BlockPos.MutableBlockPos(pos);
+        return reader.getBlockState(mPos.move(1, 0, 0)).isAir() ||
+                reader.getBlockState(mPos.move(-2, 0, 0)).isAir() ||
+                reader.getBlockState(mPos.move(1, 1, 0)).isAir() ||
+                reader.getBlockState(mPos.move(0, -2, 0)).isAir() ||
+                reader.getBlockState(mPos.move(0, 1, 1)).isAir() ||
+                reader.getBlockState(mPos.move(0, 0, -2)).isAir();
     }
 
     public void toggle() {

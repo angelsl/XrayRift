@@ -30,7 +30,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.GsonBuilder;
 
-import fr.atesab.x13.XrayMode.ViewMode;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -170,20 +169,28 @@ public class XrayMain {
         Minecraft mc = Minecraft.getInstance();
         registerXrayMode(
                 // Xray Mode
-                new XrayMode("xray", 88, ViewMode.EXCLUSIVE, Blocks.IRON_ORE, Blocks.COAL_ORE, Blocks.DIAMOND_ORE,
-                        Blocks.GOLD_ORE, Blocks.EMERALD_ORE, Blocks.REDSTONE_ORE, Blocks.OBSIDIAN, Blocks.DIAMOND_BLOCK,
-                        Blocks.IRON_ORE, Blocks.GOLD_BLOCK, Blocks.EMERALD_BLOCK, Blocks.END_PORTAL,
-                        Blocks.END_PORTAL_FRAME, Blocks.NETHER_PORTAL, Blocks.BEACON, Blocks.SPAWNER, Blocks.BOOKSHELF,
+                new XrayMode("xray", 88, false,
+                        Blocks.IRON_ORE, Blocks.COAL_ORE, Blocks.DIAMOND_ORE, Blocks.GOLD_ORE,
+                        Blocks.EMERALD_ORE, Blocks.REDSTONE_ORE, Blocks.OBSIDIAN,
+                        Blocks.IRON_BLOCK, Blocks.DIAMOND_BLOCK, Blocks.GOLD_BLOCK, Blocks.EMERALD_BLOCK,
+                        Blocks.END_PORTAL, Blocks.END_PORTAL_FRAME, Blocks.NETHER_PORTAL, Blocks.BEACON,
+                        Blocks.SPAWNER, Blocks.BOOKSHELF,
                         Blocks.LAVA, Blocks.WATER, Blocks.NETHER_WART, Blocks.BLUE_ICE, Blocks.DRAGON_WALL_HEAD,
                         Blocks.DRAGON_HEAD, Blocks.DRAGON_EGG, Blocks.NETHER_QUARTZ_ORE, Blocks.CHEST,
                         Blocks.TRAPPED_CHEST, Blocks.DISPENSER, Blocks.DROPPER, Blocks.LAPIS_ORE, Blocks.LAPIS_BLOCK,
                         Blocks.TNT, Blocks.CLAY, Blocks.WET_SPONGE, Blocks.SPONGE, Blocks.OAK_PLANKS, Blocks.CONDUIT,
                         Blocks.ENDER_CHEST),
                 // Cave Mode
-                new XrayMode("cave", 67, ViewMode.INCLUSIVE, Blocks.DIRT, Blocks.GRASS, Blocks.GRAVEL,
-                        Blocks.GRASS_BLOCK, Blocks.GRASS_PATH, Blocks.SAND, Blocks.SANDSTONE, Blocks.RED_SAND),
+                new XrayMode("cave2", 67, true,
+                        Blocks.STONE, Blocks.COBBLESTONE,
+                        Blocks.IRON_ORE, Blocks.COAL_ORE, Blocks.DIAMOND_ORE, Blocks.GOLD_ORE,
+                        Blocks.EMERALD_ORE, Blocks.REDSTONE_ORE, Blocks.OBSIDIAN,
+                        Blocks.GRANITE, Blocks.ANDESITE, Blocks.DIORITE,
+                        Blocks.SPAWNER, Blocks.BOOKSHELF, Blocks.TNT, Blocks.SIGN, Blocks.WALL_SIGN
+                        Blocks.TORCH, Blocks.WALL_TORCH, Blocks.REDSTONE_TORCH, Blocks.REDSTONE_WALL_TORCH,
+                        Blocks.LAVA, Blocks.WATER),
                 // Redstone mode
-                new XrayMode("redstone", 82, ViewMode.EXCLUSIVE, Blocks.REDSTONE_BLOCK, Blocks.REDSTONE_LAMP,
+                new XrayMode("redstone", 82, false, Blocks.REDSTONE_BLOCK, Blocks.REDSTONE_LAMP,
                         Blocks.REDSTONE_ORE, Blocks.REDSTONE_TORCH, Blocks.REDSTONE_WALL_TORCH, Blocks.REDSTONE_WIRE,
                         Blocks.REPEATER, Blocks.REPEATING_COMMAND_BLOCK, Blocks.COMMAND_BLOCK,
                         Blocks.CHAIN_COMMAND_BLOCK, Blocks.COMPARATOR, Blocks.ANVIL, Blocks.CHEST, Blocks.TRAPPED_CHEST,
@@ -263,12 +270,12 @@ public class XrayMain {
             customModes = ((List<String>) map.getOrDefault("customModes", Lists.<String>newArrayList()));
             registerXrayMode(customModes.stream().map(customMode -> {
                 String[] d = customMode.split(":", 2);
-                ViewMode view = null;
+                boolean caveMode = false;
                 if (d.length == 2)
-                    view = XrayMode.ViewMode.valueOf(d[1]);
+                    caveMode = Boolean.parseBoolean(d[1]);
                 Object blocks = map.get(d[0] + "Blocks");
                 XrayMode mode = new XrayMode(XrayMode.CUSTOM_PREFIX + d[0], -1,
-                        view == null ? XrayMode.ViewMode.EXCLUSIVE : view);
+                        caveMode);
                 if (blocks != null)
                     mode.setConfig(((List<String>) blocks).stream().toArray(String[]::new));
                 return mode;
@@ -396,7 +403,7 @@ public class XrayMain {
                         m.put("internalFullbrightEnable", internalFullbrightEnable);
                         m.put("fullBrightEnable", fullBrightEnable);
                         m.put("customModes", customModes.stream().map(
-                                s -> s.split(":", 2).length == 2 ? s : s + ":" + XrayMode.ViewMode.EXCLUSIVE.name())
+                                s -> s.split(":", 2).length == 2 ? s : s + ":false")
                                 .collect(Collectors.toList()));
                     }), writer);
             writer.close();
