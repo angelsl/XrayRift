@@ -1,9 +1,7 @@
 package fr.atesab.x13;
 
 import java.util.List;
-import java.util.Optional;
 
-import net.minecraft.util.EnumBlockRenderType;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.google.common.collect.Lists;
