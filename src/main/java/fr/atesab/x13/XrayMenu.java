@@ -27,7 +27,7 @@ public class XrayMenu extends GuiScreen {
 
 		/**
 		 * Create a button to set boolean value
-		 * 
+		 *
 		 * @param x
 		 * @param y
 		 * @param w

@@ -85,7 +85,7 @@ public class XrayMain {
 
 	/**
 	 * register an API for Xray
-	 * 
+	 *
 	 * @throws IllegalStateException
 	 *             if an API is already register for it
 	 */
