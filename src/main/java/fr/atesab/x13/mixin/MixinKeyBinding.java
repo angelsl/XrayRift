@@ -15,18 +15,18 @@ import net.minecraft.client.util.InputMappings;
 
 @Mixin(value = KeyBinding.class, priority = 500)
 public class MixinKeyBinding {
-	@Shadow
-	@Final
-	public static Map<String, Integer> CATEGORY_ORDER;
+    @Shadow
+    @Final
+    public static Map<String, Integer> CATEGORY_ORDER;
 
-	@Inject(method = "<init>*", at = @At("RETURN"))
-	public void onConstruct(String name, InputMappings.Type type, int key, String cat, CallbackInfo ci) {
-		// allow create new Category
-		if (!CATEGORY_ORDER.containsKey(cat))
-			CATEGORY_ORDER.put(cat, getInt(CATEGORY_ORDER.entrySet().stream().mapToInt(e -> e.getValue()).max()) + 1);
-	}
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    public void onConstruct(String name, InputMappings.Type type, int key, String cat, CallbackInfo ci) {
+        // allow create new Category
+        if (!CATEGORY_ORDER.containsKey(cat))
+            CATEGORY_ORDER.put(cat, getInt(CATEGORY_ORDER.entrySet().stream().mapToInt(e -> e.getValue()).max()) + 1);
+    }
 
-	private static int getInt(OptionalInt i) {
-		return i.isPresent() ? i.getAsInt() : 0;
-	}
+    private static int getInt(OptionalInt i) {
+        return i.isPresent() ? i.getAsInt() : 0;
+    }
 }

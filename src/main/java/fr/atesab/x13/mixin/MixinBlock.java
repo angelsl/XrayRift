@@ -14,9 +14,9 @@ import net.minecraft.world.IBlockReader;
 
 @Mixin(value = Block.class, priority = 500)
 public class MixinBlock {
-	@Inject(method = "shouldSideBeRendered", at = @At("HEAD"), cancellable = true)
-	private static void shouldSideBeRendered(IBlockState state, IBlockReader reader, BlockPos pos, EnumFacing face,
-			CallbackInfoReturnable<Boolean> ci) {
-		XrayMain.getMod().shouldSideBeRendered(state, reader, pos, face, ci);
-	}
+    @Inject(method = "shouldSideBeRendered", at = @At("HEAD"), cancellable = true)
+    private static void shouldSideBeRendered(IBlockState state, IBlockReader reader, BlockPos pos, EnumFacing face,
+            CallbackInfoReturnable<Boolean> ci) {
+        XrayMain.getMod().shouldSideBeRendered(state, reader, pos, face, ci);
+    }
 }

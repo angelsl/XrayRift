@@ -9,6 +9,6 @@ import net.minecraft.world.IBlockReader;
 
 @FunctionalInterface
 public interface SideRenderer {
-	public void shouldSideBeRendered(IBlockState state, IBlockReader reader, BlockPos pos, EnumFacing face,
-			CallbackInfoReturnable<Boolean> ci);
+    public void shouldSideBeRendered(IBlockState state, IBlockReader reader, BlockPos pos, EnumFacing face,
+            CallbackInfoReturnable<Boolean> ci);
 }

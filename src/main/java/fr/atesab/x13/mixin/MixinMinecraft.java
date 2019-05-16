@@ -11,8 +11,8 @@ import net.minecraft.client.Minecraft;
 @Mixin(value = Minecraft.class, priority = 500)
 public abstract class MixinMinecraft {
 
-	@Inject(at = @At("RETURN"), method = "init", cancellable = true)
-	private void init(CallbackInfo ci) {
-		XrayMain.getMod().init();
-	}
+    @Inject(at = @At("RETURN"), method = "init", cancellable = true)
+    private void init(CallbackInfo ci) {
+        XrayMain.getMod().init();
+    }
 }
