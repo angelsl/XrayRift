@@ -186,7 +186,7 @@ public class XrayMain {
                         Blocks.IRON_ORE, Blocks.COAL_ORE, Blocks.DIAMOND_ORE, Blocks.GOLD_ORE,
                         Blocks.EMERALD_ORE, Blocks.REDSTONE_ORE, Blocks.OBSIDIAN,
                         Blocks.GRANITE, Blocks.ANDESITE, Blocks.DIORITE,
-                        Blocks.SPAWNER, Blocks.BOOKSHELF, Blocks.TNT, Blocks.SIGN, Blocks.WALL_SIGN
+                        Blocks.SPAWNER, Blocks.BOOKSHELF, Blocks.TNT, Blocks.SIGN, Blocks.WALL_SIGN,
                         Blocks.TORCH, Blocks.WALL_TORCH, Blocks.REDSTONE_TORCH, Blocks.REDSTONE_WALL_TORCH,
                         Blocks.LAVA, Blocks.WATER),
                 // Redstone mode
